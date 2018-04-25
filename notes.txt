@@ -1,0 +1,14 @@
+** Run migrations whenever the db model has been updated **
+
+Database migrations: 
+flask db migrate -> automatically creates a migration script
+flask db upgrade -> applies the changes from migration script
+flask db downgrade -> undoes the last migration
+
+Database schemas: 
+User and Posts are linked. Foreign keys are keys that are created by taking values 
+from another schema.
+	 ie.) Posts has user_id column, the value would be taken from the id of User.
+
+Database syntax:
+__repr__: String representaion of the table's value
