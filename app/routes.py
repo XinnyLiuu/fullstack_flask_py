@@ -57,8 +57,11 @@ def logout():
 # Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+	# Handling for if authenicated user goes to register page
 	if current_user.is_authenticated:
 		return redirect(url_for('index'))
+
+	# Create form, form processing
 	form = RegistrationForm()
 	if form.validate_on_submit():
 		user = User(username=form.username.data, email=form.email.data)
@@ -67,12 +70,14 @@ def register():
 		db.session.commit()
 		flash('Congratulations, you are now a registered user!')
 		return redirect(url_for('login'))
+
 	return render_template('register.html', title='Register', form=form)
 
 # User profile
 @app.route('/user/<username>')
 @login_required
 def user(username):
+	# Gets user from <username> or error page, then queries db for user
 	user = User.query.filter_by(username=username).first_or_404()
 	posts = [
 		{'author': user, 'body': 'Test Post 1'},
@@ -81,6 +86,7 @@ def user(username):
 	return render_template('user.html', user=user, posts=posts)
 
 # User last visit
+# Before anything is processed, get the date now of current user activity
 @app.before_request
 def before_request():
 	if current_user.is_authenticated:
@@ -91,6 +97,7 @@ def before_request():
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
+	# On form submit
 	form = EditProfileForm()
 	if form.validate_on_submit():
 		current_user.username = form.username.data
@@ -98,6 +105,8 @@ def edit_profile():
 		db.session.commit()
 		flash('Your changes have been saved')
 		return redirect(url_for('edit_profile'))
+
+	# Otherwise, return the data and render it to edit_profile.html
 	elif request.method == 'GET':
 		form.username.data = current_user.username
 		form.about_me.data = current_user.about_me
@@ -127,13 +136,18 @@ def follow(username):
 @app.route('/unfollow/<username>')
 @login_required
 def unfollow(username):
+	# Look for username
 	user = User.query.filter_by(username=username).first()
+
+	# Checks
 	if user is None:
 		flash('User {} not found'.format(username))
 		return redirect(url_for('index'))
 	if user == current_user:
 		flash('You cannot unfollow yourself!')
 		return redirect(url_for('user', username=username))
+
+	# Unfollow user
 	current_user.unfollow(user)
 	db.session.commit()
 	flash('You are not following {}'.format(username))
